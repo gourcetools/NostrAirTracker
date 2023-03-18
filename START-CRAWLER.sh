@@ -1,3 +1,3 @@
 #!/bin/bash
 cd ./src
-./crawl-speed-altitude-loop.js
+node ./crawl-speed-altitude-loop.js
