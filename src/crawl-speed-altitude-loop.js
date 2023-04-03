@@ -1,5 +1,8 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
+const readline = require('readline');
+
+
 
 // Define the minimum and maximum delay times (in milliseconds) for the loop
 // and the ICAO ID for the aircraft to track
@@ -10,8 +13,9 @@ const CONFIG = {
   MIN_DELAY: (parseInt(process.env.MIN_DELAY, 10) || 1) * 60 * 1000,
 
   // Maximum delay in minutes between each check (default: 15 minutes)
-  MAX_DELAY: (parseInt(process.env.MAX_DELAY, 10) || 1) * 60 * 1000,
+  MAX_DELAY: (parseInt(process.env.MAX_DELAY, 10) || 10) * 60 * 1000,
 };
+
 
 
 // Read the ICAO ID from config-icao-id.txt
@@ -28,6 +32,26 @@ console.log(` `);
 console.log(` Let's see what's happening with ${ICAO_ID}...`);
 console.log(` `);
 
+
+// Function to wait for any key press
+function waitForAnyKey(promptMessage) {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    rl.question(promptMessage, () => {
+      rl.close();
+      resolve();
+    });
+  });
+}
+
+
+
+
+
 // Create an async function that will contain a while loop
 (async () => {
   // Variables to store previous altitude and speed
@@ -35,7 +59,6 @@ console.log(` `);
   let prevSpeed = 0;
   let prevStatus = 'Parked';
   let retries = 0;
-  const MAX_RETRIES = 99;
 
   // Update status function
   function updateStatus(newStatus) {
@@ -56,9 +79,8 @@ console.log(` `);
 
       // Set the maximum number of retries...
       const MAX_RETRIES = 99;
-      console.log(`  Crawling... `);
       const browser = await puppeteer.launch({
-        executablePath: '/usr/bin/chromium-browser', // Replace with your path to Chromium browser executable
+        executablePath: '/usr/bin/google-chrome', // Replace with your path to Chromium browser executable
         headless: true
       });
       const page = await browser.newPage();
@@ -92,6 +114,7 @@ console.log(` `);
       // Visit the website with the specified ICAO ID
       while (true) {
         try {
+          console.log(`   Crawling from https://globe.adsbexchange.com/?icao=${ICAO_ID}`);
           await page.goto(`https://globe.adsbexchange.com/?icao=${ICAO_ID}`);
           break;
         } catch (error) {
@@ -106,12 +129,6 @@ console.log(` `);
 
 
       retries = 0;
-
-      // Wait for 10 seconds
-      await page.waitForTimeout(10000);
-
-      // Click the "X" button to stop any loading process on the page
-      await page.evaluate(() => window.stop());
 
 
       // Extract the required data
@@ -142,8 +159,10 @@ console.log(` `);
       if (isGettingData) {
         if (prevStatus === 'Flying' && ALTITUDE <= 100 && SPEED <= 100) {
           updateStatus('Landed');
-        } else if ((prevStatus === 'Parked' || prevStatus === 'Landed') && ALTITUDE > 100 && SPEED > 100) {
+
+        } else if ((prevStatus === 'Parked' || prevStatus === 'Landed' || prevStatus === 'Offline') && ALTITUDE > 100 && SPEED > 100) {
           updateStatus('Took Off');
+
         } else if ((prevStatus === 'Took Off' || prevStatus === 'Flying') && ALTITUDE > 100 && SPEED > 100) {
           updateStatus('Flying');
         } else if (prevStatus === 'Landed' && ALTITUDE <= 100 && SPEED <= 10) {
@@ -174,23 +193,34 @@ console.log(` `);
       console.log(` ║  🏔️   ALTITUDE: ${ALTITUDE} `);
       console.log(` ║  💨  SPEED: ${SPEED}`);
       console.log(` ║  👀  LAST SEEN: ${LAST_SEEN}`);
-
       fs.writeFileSync('../data/STATUS.txt', prevStatus);
-
       // Close the browser after completing the current iteration
       await browser.close();
     } catch (error) {
       console.error('An error occurred:', error);
       console.log('Continuing to the next iteration...');
     }
+        // Wait for a random delay time between MIN_DELAY and MAX_DELAY
+  const delay = Math.floor(Math.random() * (CONFIG.MAX_DELAY - CONFIG.MIN_DELAY + 1)) + CONFIG.MIN_DELAY;
+  const delayMinutes = Math.floor(delay / 60000);
+  const delaySeconds = Math.floor((delay % 60000) / 1000);
+  console.log(` ║    Next check: ${delayMinutes}m ${delaySeconds}s `);
+  console.log(` ╚════> or press ENTER to check now.`);
+  // Custom timeouts
+  const OFFLINE_TIMEOUT = 20 * 60 * 1000; // 20 minutes
+  const FLYING_TIMEOUT = 1 * 60 * 1000; // 1 minute
 
-    // Wait for a random delay time between MIN_DELAY and MAX_DELAY
-    const delay = Math.floor(Math.random() * (CONFIG.MAX_DELAY - CONFIG.MIN_DELAY + 1)) + CONFIG.MIN_DELAY;
-    const delayMinutes = Math.floor(delay / 60000);
-    const delaySeconds = Math.floor((delay % 60000) / 1000);
-    console.log(` ║    Next check: ${delayMinutes}m ${delaySeconds}s.`);
-    console.log(` ╚══════════════════════ `);
 
-    await new Promise(resolve => setTimeout(resolve, delay));
+  const timeout = prevStatus === 'Offline' ? OFFLINE_TIMEOUT : prevStatus === 'Flying' ? FLYING_TIMEOUT : delay;
+
+
+
+  // Wait for a custom delay or a key press
+  await Promise.race([
+    new Promise((resolve) => setTimeout(resolve, timeout)),
+    waitForAnyKey(''),
+  ]);
+
+
   }
 })();

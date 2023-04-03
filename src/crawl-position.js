@@ -13,9 +13,8 @@ const RESTART_INTERVAL = 10000; // 10 seconds in milliseconds
 
     console.log('Launching browser...');
     const browser = await puppeteer.launch({
-      executablePath: '/usr/bin/chromium-browser', // Replace with your path to Chromium browser executable
-      headless: true,
-      args: ['--disable-dev-shm-usage'] // Disable /dev/shm usage to reduce memory usage
+      executablePath: '/usr/bin/google-chrome', // Replace with your path to Chromium browser executable
+      headless: true
     });
     const page = await browser.newPage();
 
@@ -45,7 +44,6 @@ const RESTART_INTERVAL = 10000; // 10 seconds in milliseconds
     fs.writeFileSync('../data/LONG.txt', LONG.trim().slice(0, -1));
 
     console.log('Closing browser...');
-    await page.close();
     await browser.close();
 
     const elapsedTime = process.hrtime(startTime);
@@ -53,10 +51,8 @@ const RESTART_INTERVAL = 10000; // 10 seconds in milliseconds
     console.log(`Script completed in ${elapsedTimeInSeconds} seconds.`);
   } catch (error) {
     console.error(error);
-  } finally {
-    console.log('Freeing up resources...');
-    // Free up resources
-    global.gc(); // Run garbage collector
-    setTimeout(runScript, RESTART_INTERVAL); // Restart the script after a certain interval
+    console.log('An error occurred. Restarting the script after a certain interval...');
+    // Restart the script after a certain interval
+    setTimeout(runScript, RESTART_INTERVAL);
   }
 })();
