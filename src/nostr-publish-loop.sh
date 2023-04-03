@@ -1,9 +1,9 @@
 #!/bin/bash
 # Configuration
 
-RELAY="wss://relay.damus.io"
-RELAYBIS="wss://nos.lol"
-RELAYFALLBACK="wss://relay.wellordered.net"
+RELAY="wss://nostr.mutinywallet.com"
+RELAYBIS="wss://relay.nostr.band"
+RELAYFALLBACK="wss://nostr-pub.wellordered.net"
 PRIVKEY=$(cat ../config/NOSTR-HEX-PRIVKEY.txt)
 POW=10
 
@@ -19,10 +19,6 @@ MESSAGE=$(cat ../data/MESSAGE.txt 2>/dev/null)
 
 
 
-
-console.log('╔═════════════════════════════════════════╗');
-console.log('║ 👋  Welcome to NostrAirTracker          ║');
-console.log('╚═════════════════════════════════════════╝'); 
 echo "Waiting for status change to publish..."
 
 
@@ -42,13 +38,13 @@ do
     if [ "$STATUS" == "Landed" ]; then
      echo "Landed..."
      echo "Getting position"
-      node get-position.js
+      node crawl-position.js
      echo "Converting position to airport name"
-      python3 pos-to-airport.py
+      python3 crawled-position-to-airport.py
 
      AIRPORT=$(cat ../data/AIRPORT.txt)
      LASTAIRPORT=$(cat ../data/AIRPORT.txt)
-     echo " 🛬📍 Arrived at "$AIRPORT" " > ../data/MESSAGE.txt
+     echo " 🛬📍 Landed at "$AIRPORT" " > ../data/MESSAGE.txt
      MESSAGE=$(cat ../data/MESSAGE.txt)
      echo "$MESSAGE"
        echo "$a"
@@ -66,8 +62,7 @@ do
 
     elif [ "$STATUS" == "Parked" ]; then
       AIRPORT=$(cat ../data/AIRPORT.txt)
-        echo "$a"
-     nostril --envelope --pow "$POW" --sec "$PRIVKEY" --content "Parked" | tee >(websocat $RELAY) >(websocat $RELAYBIS) >(websocat $RELAYFALLBACK)  
+        echo "Parked"
    echo "$b"
 
 
