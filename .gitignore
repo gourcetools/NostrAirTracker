@@ -1,3 +1,8 @@
 data/STATUS.txt
 data/LONG.txt
 data/LAT.txt
+data/AIRPORT.txt
+data/LAST-AIRPORT.txt
+data/STATUS.txt
+config/ICAO-ID.txt
+src/node_modules/*
