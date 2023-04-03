@@ -55,4 +55,4 @@ country = closest[3]
 flag = country_flag(country)
 
 with open('../data/AIRPORT.txt', 'w') as f:
-    f.write(f"{airport_name} - {city} - {country} {flag}")
+    f.write(f"{airport_name} - {country} {flag}")

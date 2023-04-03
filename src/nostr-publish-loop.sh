@@ -47,23 +47,21 @@ do
      echo " 🛬📍 Landed at "$AIRPORT" " > ../data/MESSAGE.txt
      MESSAGE=$(cat ../data/MESSAGE.txt)
      echo "$MESSAGE"
-       echo "$a"
      nostril --envelope --pow "$POW" --sec "$PRIVKEY" --content "$MESSAGE" | tee >(websocat $RELAY) >(websocat $RELAYBIS) >(websocat $RELAYFALLBACK)  
-        echo "$b"
+
      elif [ "$STATUS" == "Took Off" ]; then
      cp ../data/AIRPORT.txt ../data/LAST-AIRPORT.txt
      AIRPORT=$(cat ../data/AIRPORT.txt)
      echo " 🛫 Took Off from "$AIRPORT"." > ../data/MESSAGE.txt
      MESSAGE=$(cat ../data/MESSAGE.txt)
      echo "$MESSAGE"
-     echo "$a"
      nostril --envelope --pow "$POW" --sec "$PRIVKEY" --content "$MESSAGE" | tee >(websocat $RELAY) >(websocat $RELAYBIS) >(websocat $RELAYFALLBACK)  
-     echo "$b"
+
 
     elif [ "$STATUS" == "Parked" ]; then
       AIRPORT=$(cat ../data/AIRPORT.txt)
         echo "Parked"
-   echo "$b"
+
 
 
     elif [ "$STATUS" == "Flying" ]; then
