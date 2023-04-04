@@ -10,3 +10,4 @@ src/node_modules/*
 src/close.png
 src/far.png
 src/package-lock.json
+src/overlay.png
