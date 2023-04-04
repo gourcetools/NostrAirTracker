@@ -7,3 +7,6 @@ data/LAST-AIRPORT.txt
 data/STATUS.txt
 config/ICAO-ID.txt
 src/node_modules/*
+src/close.png
+src/far.png
+src/package-lock.json

@@ -1,6 +1,6 @@
 const puppeteer = require('puppeteer');
-const fs = require('fs');
 const readline = require('readline');
+const fs = require('fs');
 
 
 
@@ -20,6 +20,8 @@ const CONFIG = {
 
 // Read the ICAO ID from config-icao-id.txt
 const ICAO_ID = fs.readFileSync('../config/ICAO-ID.txt', 'utf8').trim();
+const PUP_BROWSER_LOCATION = fs.readFileSync('../config/PUP-BROWSER-LOCATION.txt', 'utf8').trim();
+
 
 console.log('╔═════════════════════════════════════════╗');
 console.log('║ 👋  Welcome to NostrAirTracker          ║');
@@ -80,7 +82,7 @@ function waitForAnyKey(promptMessage) {
       // Set the maximum number of retries...
       const MAX_RETRIES = 99;
       const browser = await puppeteer.launch({
-        executablePath: '/usr/bin/google-chrome', // Replace with your path to Chromium browser executable
+        executablePath: PUP_BROWSER_LOCATION,
         headless: true
       });
       const page = await browser.newPage();
