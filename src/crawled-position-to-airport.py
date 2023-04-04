@@ -50,7 +50,6 @@ def country_flag(country_name):
 
 closest = closest_airport(LAT, LONG)
 airport_name = closest[1]
-city = closest[2]
 country = closest[3]
 flag = country_flag(country)
 
