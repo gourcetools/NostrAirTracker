@@ -1,9 +1,24 @@
 const puppeteer = require('puppeteer');
 const sharp = require('sharp');
+const fs = require('fs');
 
-console.log(`==> Let's take a screenshot`);
+const ICAO_ID = fs.readFileSync('../config/ICAO-ID.txt', 'utf8').trim();
 
-async function takeScreenshot(url, output_path, zoom_count, cropSettings) {
+const closeZoom = 9;
+const farZoom = 3;
+
+const cropSettings = {
+  left: 400,
+  top: 300,
+  right: 850,
+  bottom: 310,
+};
+
+const url = `https://globe.adsbexchange.com/?icao=${ICAO_ID}`;
+
+console.log(`==> Let's take screenshots`);
+
+async function takeScreenshots(url, closeOutputPath, farOutputPath, closeZoom, farZoom, cropSettings) {
   // Launch the browser
   const browser = await puppeteer.launch({
     headless: true,
@@ -13,33 +28,35 @@ async function takeScreenshot(url, output_path, zoom_count, cropSettings) {
   await page.setViewport({ width: 1920, height: 1080 });
 
   // Open the URL
-  console.log(`==> Open the URL`)
+  console.log(`==> Open the URL`);
   await page.goto(url, { waitUntil: 'networkidle0' });
-  
+
   // Wait for the map to load
-  console.log(`==> Wait for the map to load`)
-  await page.waitForTimeout(10000);
+  console.log(`==> Wait for the map to load`);
+  await page.waitForTimeout(5000);
 
-  // Zoom in on the map
-  console.log(`==> Zooming in`)
-  for (let i = 0; i < zoom_count; i++) {
+  // Zoom in on the map and take a close-up screenshot
+  console.log(`==> Zooming in and taking a close-up screenshot`);
+  for (let i = 0; i < closeZoom; i++) {
     await page.keyboard.press('+');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(2000);
   }
+  const closeScreenshotBuffer = await page.screenshot();
+  const closeCroppedBuffer = await cropImage(closeScreenshotBuffer, cropSettings);
+  await sharp(closeCroppedBuffer).toFile(closeOutputPath);
 
-  // Take a screenshot
-  console.log(`==> Take a screenshot`)
-  const screenshotBuffer = await page.screenshot();
-
-  // Crop the screenshot
-  console.log(`==> Save the cropped screenshot`)
-  const croppedBuffer = await cropImage(screenshotBuffer, cropSettings);
-
-  // Save the cropped screenshot
-  console.log(`==> Close the browser`)
-  await sharp(croppedBuffer).toFile(output_path);
+  // Zoom out and take a far-away screenshot
+  console.log(`==> Zooming out and taking a far-away screenshot`);
+  for (let i = 0; i < closeZoom + farZoom; i++) {
+    await page.keyboard.press('-');
+    await page.waitForTimeout(2000);
+  }
+  const farScreenshotBuffer = await page.screenshot();
+  const farCroppedBuffer = await cropImage(farScreenshotBuffer, cropSettings);
+  await sharp(farCroppedBuffer).toFile(farOutputPath);
 
   // Close the browser
+  console.log(`==> Close the browser`);
   await browser.close();
 }
 
@@ -54,24 +71,14 @@ async function cropImage(imageBuffer, cropSettings) {
   return originalImage.extract({ left, top, width: croppedWidth, height: croppedHeight }).toBuffer();
 }
 
-const url = 'https://globe.adsbexchange.com/?icao=a835af';
-const output_path = 'screenshot.png';
-const zoom_count = 5;
-
-const cropSettings = {
-  left: 250,
-  top: 300,
-  right: 700,
-  bottom: 310,
-};
-
-
 (async () => {
   const startTime = Date.now();
 
-  await takeScreenshot(url, output_path, zoom_count, cropSettings);
+  await takeScreenshots(url, 'close.png', 'far.png', closeZoom, farZoom, cropSettings);
 
   const endTime = Date.now();
   const executionTime = (endTime - startTime) / 1000;
   console.log(`==> Execution time: ${executionTime.toFixed(2)} seconds`);
 })();
+
+
