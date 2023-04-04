@@ -3,6 +3,7 @@
 
 The application allows users to monitor a specified aircraft. <br>
 Determine his status & publish accordingly to Nostr.<br>
+No API keys needed. Simple setup.<br>
 
 
 # <b>✔️ How to use NostrAirTracker?</b><br>

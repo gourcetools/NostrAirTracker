@@ -13,7 +13,6 @@ echo "$icaoid" > ./config/ICAO-ID.txt
 
 echo "✅ $icaoid defined as ICAO-ID in ./config/ICAO-ID.txt"
 
-
 echo "==============="
 echo " BROWSER SETUP"
 echo ""===============""
@@ -39,4 +38,4 @@ echo " NOSTR HEX PRIVKEY ?"
 read key
 echo "$key" > ./config/NOSTR-HEX-PRIVKEY.txt
 
-echo "✅ $icaoid defined as ICAO-ID in ./config/NOSTR-HEX-PRIVKEY.txt"
+echo "✅ $key defined as NOSTR-HEX-PRIVKEY in ./config/NOSTR-HEX-PRIVKEY.txt"
