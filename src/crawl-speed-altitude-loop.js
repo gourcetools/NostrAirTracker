@@ -45,6 +45,10 @@ function waitForAnyKey(promptMessage) {
 
     rl.question(promptMessage, () => {
       rl.close();
+      process.stdin.removeAllListeners('end');
+      process.stdin.removeAllListeners('error');
+      process.stdin.removeAllListeners('keypress');
+      process.stdout.removeAllListeners('resize');
       resolve();
     });
   });
