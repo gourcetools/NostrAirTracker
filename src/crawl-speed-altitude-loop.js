@@ -114,7 +114,7 @@ function waitForAnyKey(promptMessage) {
       // Visit the website with the specified ICAO ID
       while (true) {
         try {
-          console.log(`   Crawling from https://globe.adsbexchange.com/?icao=${ICAO_ID}`);
+          console.log(`Navitating to https://globe.adsbexchange.com/?icao=${ICAO_ID}`);
           await page.goto(`https://globe.adsbexchange.com/?icao=${ICAO_ID}`);
           break;
         } catch (error) {
@@ -155,26 +155,36 @@ function waitForAnyKey(promptMessage) {
       const infoSeenPos = await page.$eval('#selected_seen_pos', span => span.textContent);
       const LAST_SEEN = infoSeenPos.trim();
 
-      // Determine the aircraft's status based on altitude, speed changes, and previous status
-      if (isGettingData) {
-        if (prevStatus === 'Flying' && ALTITUDE <= 100 && SPEED <= 100) {
-          updateStatus('Landed');
+// Determine the aircraft's status based on altitude, speed changes, and previous status
+  // Check if the program is receiving data about the aircraft
+  if (isGettingData) {
 
-        } else if ((prevStatus === 'Parked' || prevStatus === 'Landed' || prevStatus === 'Offline') && ALTITUDE > 100 && SPEED > 100) {
-          updateStatus('Took Off');
+  // If the previous status was 'Flying' and the current altitude is 100 or below and speed is 100 or below, the aircraft has landed
+  if (prevStatus === 'Flying' && ALTITUDE <= 100 && SPEED <= 100) {
+    updateStatus('Landed');
 
-        } else if ((prevStatus === 'Took Off' || prevStatus === 'Flying') && ALTITUDE > 100 && SPEED > 100) {
-          updateStatus('Flying');
-        } else if (prevStatus === 'Landed' && ALTITUDE <= 100 && SPEED <= 10) {
-          updateStatus('Parked');
-        }
-      } else {
-        if (prevStatus === '') {
-          updateStatus('Parked');
-        } else {
-          updateStatus('Offline');
-        }
-      }
+  // If the previous status was 'Parked' or 'Landed', and the current altitude is above 100 and speed is above 100, the aircraft has taken off
+  } else if ((prevStatus === 'Parked' || prevStatus === 'Landed') && ALTITUDE > 100 && SPEED > 100) {
+    updateStatus('Took Off');
+
+  // If the previous status was 'Took Off' or 'Flying' and the current altitude is above 100 and speed is above 100, the aircraft is flying
+  } else if ((prevStatus === 'Took Off' || prevStatus === 'Flying') && ALTITUDE > 100 && SPEED > 100) {
+    updateStatus('Flying');
+
+  // If the previous status was 'Landed' and the current altitude is 100 or below and speed is 10 or below, the aircraft is parked
+  } else if (prevStatus === 'Landed' && ALTITUDE <= 100 && SPEED <= 10) {
+    updateStatus('Parked');
+  }
+} else {
+  if (prevStatus === '') {
+// If there's no previous status and no data, set the status to 'Parked'
+    updateStatus('Parked');
+  } else {
+    // If the aircraft is offline, set the status to the last known status and continue the loop
+    updateStatus(prevStatus);
+  }
+}
+
 
       // Save "Took Off" or "Landed" events to the STATUS.txt file
       if (prevStatus === 'Took Off' || prevStatus === 'Landed') {
@@ -187,40 +197,38 @@ function waitForAnyKey(promptMessage) {
       prevAltitude = ALTITUDE;
       prevSpeed = SPEED;
 
-      // Echo data to console
-      console.log(` ╔═ icao id:  ${ICAO_ID}  ══════`);
-      console.log(` ║  🌐  STATUS: ${prevStatus} `);
-      console.log(` ║  🏔️   ALTITUDE: ${ALTITUDE} `);
-      console.log(` ║  💨  SPEED: ${SPEED}`);
-      console.log(` ║  👀  LAST SEEN: ${LAST_SEEN}`);
-      fs.writeFileSync('../data/STATUS.txt', prevStatus);
-      // Close the browser after completing the current iteration
-      await browser.close();
-    } catch (error) {
-      console.error('An error occurred:', error);
-      console.log('Continuing to the next iteration...');
-    }
-        // Wait for a random delay time between MIN_DELAY and MAX_DELAY
-  const delay = Math.floor(Math.random() * (CONFIG.MAX_DELAY - CONFIG.MIN_DELAY + 1)) + CONFIG.MIN_DELAY;
-  const delayMinutes = Math.floor(delay / 60000);
-  const delaySeconds = Math.floor((delay % 60000) / 1000);
-  console.log(` ║    Next check: ${delayMinutes}m ${delaySeconds}s `);
-  console.log(` ╚════> or press ENTER to check now.`);
-  // Custom timeouts
-  const OFFLINE_TIMEOUT = 20 * 60 * 1000; // 20 minutes
-  const FLYING_TIMEOUT = 1 * 60 * 1000; // 1 minute
+// Echo data to console
+console.log(` ╔═ icao id:  ${ICAO_ID}  ══════`);
+console.log(` ║  🌐  STATUS: ${prevStatus} `);
+console.log(` ║  🏔️   ALTITUDE: ${ALTITUDE} `);
+console.log(` ║  💨  SPEED: ${SPEED}`);
+console.log(` ║  👀  LAST SEEN: ${LAST_SEEN}`);
+fs.writeFileSync('../data/STATUS.txt', prevStatus);
 
 
-  const timeout = prevStatus === 'Offline' ? OFFLINE_TIMEOUT : prevStatus === 'Flying' ? FLYING_TIMEOUT : delay;
+// Close the browser after completing the current iteration
+await browser.close();
 
+// Custom timeouts
+let timeout = 20 * 60 * 1000;
 
+} catch (error) {
+  console.error('An error occurred:', error);
+  console.log('Continuing to the next iteration...');
+}
 
-  // Wait for a custom delay or a key press
-  await Promise.race([
-    new Promise((resolve) => setTimeout(resolve, timeout)),
-    waitForAnyKey(''),
-  ]);
+// Wait for a random delay time between MIN_DELAY and MAX_DELAY
+const delay = Math.floor(Math.random() * (CONFIG.MAX_DELAY - CONFIG.MIN_DELAY + 1)) + CONFIG.MIN_DELAY;
+const delayMinutes = Math.floor(delay / 60000);
+const delaySeconds = Math.floor((delay % 60000) / 1000);
+console.log(` ║    Next check: ${delayMinutes}m ${delaySeconds}s `);
+console.log(` ╚════> or press ENTER to check now.`);
 
+// Wait for a custom delay or a key press
+await Promise.race([
+  new Promise((resolve) => setTimeout(resolve, delay)), // Replace 'timeout' with 'delay'
+  waitForAnyKey(''),
+]);
 
   }
 })();
