@@ -60,6 +60,7 @@ function waitForAnyKey(promptMessage) {
 
 // Create an async function that will contain a while loop
 (async () => {
+
   // Variables to store previous altitude and speed
   let prevAltitude = 0;
   let prevSpeed = 0;
@@ -90,6 +91,11 @@ function waitForAnyKey(promptMessage) {
         headless: true
       });
       const page = await browser.newPage();
+
+      // Record the start time
+      const startTime = new Date().getTime();
+  
+
 
       // [Browser setup and navigation]
 
@@ -203,12 +209,20 @@ function waitForAnyKey(promptMessage) {
       prevAltitude = ALTITUDE;
       prevSpeed = SPEED;
 
+// Calculate elapsed time
+const endTime = new Date().getTime();
+const elapsedTime = endTime - startTime;
+const elapsedTimeSeconds = (elapsedTime / 1000).toFixed(2);
+
+
+
 // Echo data to console
 console.log(` ╔═ icao id:  ${ICAO_ID}  ══════`);
 console.log(` ║  🌐  STATUS: ${prevStatus} `);
 console.log(` ║  🏔️   ALTITUDE: ${ALTITUDE} `);
 console.log(` ║  💨  SPEED: ${SPEED}`);
 console.log(` ║  👀  LAST SEEN: ${LAST_SEEN}`);
+console.log(` ║  ⏱️   CRAWL PROCESS TOOK ${elapsedTimeSeconds}s`) ;
 fs.writeFileSync('../data/STATUS.txt', prevStatus);
 
 
@@ -227,7 +241,7 @@ let timeout = 20 * 60 * 1000;
 const delay = Math.floor(Math.random() * (CONFIG.MAX_DELAY - CONFIG.MIN_DELAY + 1)) + CONFIG.MIN_DELAY;
 const delayMinutes = Math.floor(delay / 60000);
 const delaySeconds = Math.floor((delay % 60000) / 1000);
-console.log(` ║    Next check: ${delayMinutes}m ${delaySeconds}s `);
+console.log(` ║   ... next check: ${delayMinutes}m ${delaySeconds}s `);
 console.log(` ╚════> or press ENTER to check now.`);
 
 // Wait for a custom delay or a key press
