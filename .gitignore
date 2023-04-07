@@ -1,5 +1,4 @@
 data/MESSAGE.txt
-data/STATUS.txt
 data/LONG.txt
 data/LAT.txt
 data/AIRPORT.txt
@@ -11,3 +10,6 @@ src/close.png
 src/far.png
 src/package-lock.json
 src/overlay.png
+data/close.png
+data/far.png
+data/plane.png
