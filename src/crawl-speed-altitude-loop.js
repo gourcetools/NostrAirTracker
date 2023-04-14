@@ -29,9 +29,7 @@ console.log('╚═════════════════════�
 console.log(' Check for updates at:'); 
 console.log(' https://github.com/gourcetools/NostrAirTracker'); 
 console.log(` `);
-console.log(` `);
-console.log(` `);
-console.log(` Let's see what's happening with ${ICAO_ID}...`);
+console.log(` ICAO SET TO: ${ICAO_ID}...`);
 console.log(` `);
 
 
@@ -126,7 +124,6 @@ function waitForAnyKey(promptMessage) {
       // Visit the website with the specified ICAO ID
       while (true) {
         try {
-          console.log(`Navitating to https://globe.adsbexchange.com/?icao=${ICAO_ID}`);
           await page.goto(`https://globe.adsbexchange.com/?icao=${ICAO_ID}`);
           break;
         } catch (error) {
