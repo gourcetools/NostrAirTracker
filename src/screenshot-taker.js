@@ -6,7 +6,7 @@ const ICAO_ID = fs.readFileSync('../config/ICAO-ID.txt', 'utf8').trim();
 const PUP_BROWSER_LOCATION = fs.readFileSync('../config/PUP-BROWSER-LOCATION.txt', 'utf8').trim();
 
 const closeZoom = 8;
-const farZoom = 3;
+const farZoom = 1;
 
 const cropSettings = {
   left: 300,
@@ -19,7 +19,7 @@ const url = `https://globe.adsbexchange.com/?icao=${ICAO_ID}`;
 
 
 
-    console.log(`==== screenshot.js ====`);
+    console.log(`==== screenshot-taker.js ====`);
     console.log(``);
 
 
