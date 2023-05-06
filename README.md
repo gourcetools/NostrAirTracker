@@ -54,13 +54,14 @@ NostrAirTracker <br>
           - Airport name based on ``LAT`` & ``LONG``
 - [x] 📢 Send status update to nostr network. | `KIND: 1
 - [x] 📷 Take screenshoots.
+- [x] Post screenshoots with status update.
+
 
 # Todo:
 
 - [ ] Simple shell Menu.
-- [ ] Post screenshoots with status update.
 - [ ] Use tor for crawling to avoid being blocked in the future.
-- [ ] Remove completely nostr-publisher.sh and put it inside the main loop.
+- [ ] Remove completely nostr-publisher.sh and put it inside the main loop with settings in the main menu for publishing.
 - [ ] Shell menu.
 - [ ] Support for more relays, import relays list from a file in config folder instead of hardcoded variables.
 
