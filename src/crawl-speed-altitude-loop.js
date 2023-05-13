@@ -86,7 +86,7 @@ function waitForAnyKey(promptMessage) {
       const MAX_RETRIES = 99;
       const browser = await puppeteer.launch({
         executablePath: PUP_BROWSER_LOCATION,
-        headless: true
+        headless:  "new"
       });
       const page = await browser.newPage();
 
@@ -140,65 +140,100 @@ function waitForAnyKey(promptMessage) {
       retries = 0;
 
 
-      // Extract the required data
-      const altitudeData = await page.$eval('#selected_altitude1', span => span.textContent);
-      let ALTITUDE;
+// Extract the required data
+const altitudeData = await page.$eval('#selected_altitude1', span => span.textContent);
+let ALTITUDE;
 
-      if (altitudeData.trim().toLowerCase() === "on ground") {
-        ALTITUDE = 0;
-        isOnGround = true;
-      } else {
-        ALTITUDE = parseInt(altitudeData.replace(/[^\d]/g, ''), 10);
-        isOnGround = false;
-      }
+if (altitudeData.trim().toLowerCase() === "on ground") {
+  ALTITUDE = 0;
+  isOnGround = true;
+} else {
+  ALTITUDE = parseInt(altitudeData.replace(/[^\d]/g, ''), 10);
+  isOnGround = false;
+}
 
-      const speedData = await page.$eval('#selected_speed1', span => span.textContent);
-      const SPEED = parseFloat(speedData);
+const speedData = await page.$eval('#selected_speed1', span => span.textContent);
+const SPEED = parseFloat(speedData);
 
-      if (!isNaN(SPEED) && !isNaN(ALTITUDE)) {
-        isGettingData = true;
-      } else {
-        isGettingData = false;
-      }
+if (!isNaN(SPEED) && !isNaN(ALTITUDE)) {
+  isGettingData = true;
+} else {
+  isGettingData = false;
+}
 
-      const infoSeenPos = await page.$eval('#selected_seen_pos', span => span.textContent);
-      const LAST_SEEN = infoSeenPos.trim();
+const infoSeenPos = await page.$eval('#selected_seen_pos', span => span.textContent);
+const LAST_SEEN = infoSeenPos.trim();
 
-// Determine the aircraft's status based on altitude, speed changes, and previous status
-  // Check if the program is receiving data about the aircraft
-  if (isGettingData) {
 
-  // If the previous status was 'Flying' and the current altitude is 100 or below and speed is 100 or below, the aircraft has landed
-  if (prevStatus === 'Flying' && ALTITUDE <= 100 && SPEED <= 100) {
-    updateStatus('Landed');
+function lastSeenToMinutes(lastSeen) {
+  const units = lastSeen.split(' ');
+  const value = parseFloat(units[0]);
+  let minutes = 0;
 
-  // If the previous status was 'Parked' or 'Landed', and the current altitude is above 100 and speed is above 100, the aircraft has taken off
-  } else if ((prevStatus === 'Parked' || prevStatus === 'Landed') && ALTITUDE > 100 && SPEED > 100) {
-    updateStatus('Took Off');
-
-  // If the previous status was 'Took Off' or 'Flying' and the current altitude is above 100 and speed is above 100, the aircraft is flying
-  } else if ((prevStatus === 'Took Off' || prevStatus === 'Flying') && ALTITUDE > 100 && SPEED > 100) {
-    updateStatus('Flying');
-
-  // If the previous status was 'Landed' and the current altitude is 100 or below and speed is 10 or below, the aircraft is parked
-  } else if (prevStatus === 'Landed' && ALTITUDE <= 100 && SPEED <= 10) {
-    updateStatus('Parked');
+  if (units[1] === 's') {
+    minutes = value / 60;
+  } else if (units[1] === 'min') {
+    minutes = value;
+  } else if (units[1] === 'h') {
+    minutes = value * 60;
   }
+
+  return minutes;
+}
+
+const lastSeenMinutes = lastSeenToMinutes(LAST_SEEN);
+
+
+// Calculate time difference between now and the last seen time
+const lastSeenTime = new Date(LAST_SEEN);
+console.log(`${lastSeenMinutes} - ${LAST_SEEN} `);
+
+
+// Determine the aircraft's status based on altitude, time since last seen, and previous status
+
+// If the previous status was 'Flying', the current altitude is less than or equal to 15000 or N/A,
+// and the last seen time is more than 5 minutes ago, the aircraft has landed near
+if (prevStatus === 'Flying' && (isNaN(ALTITUDE) || ALTITUDE <= 15000) && lastSeenMinutes > 5) {
+  updateStatus('Landed near');
+  console.log('Last seen < 5 min, plane is under 15000 - Landed near');
+
+// If the previous status was 'Flying' and the current altitude is 500 or below and speed is 150 or below, the aircraft has landed
+} else if (prevStatus === 'Flying' && ALTITUDE <= 500 && SPEED <= 150) {
+  updateStatus('Landed');
+  console.log('Altitude under 500 and speed is under 150 - Landed');
+
+// If the previous status was 'Parked' or 'Landed', and the current altitude is above 500 and speed is above 150, the aircraft has taken off
+} else if ((prevStatus === 'Parked' || prevStatus === 'Landed') && ALTITUDE > 500 && SPEED > 150) {
+  updateStatus('Took Off');
+  console.log('Last status was Parked or Landed, plane is above 500 and speed is above 150 - Took Off');
+
+// If the previous status was 'Took Off' or 'Flying' and the current altitude is above 500 and speed is above 150, the aircraft is flying
+} else if ((prevStatus === 'Took Off' || prevStatus === 'Flying') && ALTITUDE > 500 && SPEED > 150) {
+  updateStatus('Flying');
+  console.log('Already took off, now flying.');
+
+// If the previous status was 'Landed' and the current altitude is 500 or below and speed is 10 or below, the aircraft is parked
+} else if (prevStatus === 'Landed' && ALTITUDE <= 500 && SPEED <= 10) {
+  updateStatus('Parked');
+  console.log('Now Parked');
 } else {
   if (prevStatus === '') {
-// If there's no previous status and no data, set the status to 'Parked'
+    // If there's no previous status and no data, set the status to 'Parked'
     updateStatus('Parked');
+    console.log('No previous status and no data - Parked');
   } else {
     // If the aircraft is offline, set the status to the last known status and continue the loop
     updateStatus(prevStatus);
+    console.log('Aircraft is offline - Not changing status');
   }
 }
 
 
-      // Save "Took Off" or "Landed" events to the STATUS.txt file
-      if (prevStatus === 'Took Off' || prevStatus === 'Landed') {
-        fs.writeFileSync('../data/STATUS.txt', prevStatus);
-      }
+// Save "Took Off" or "Landed" events to the STATUS.txt file
+if (prevStatus === 'Took Off' || prevStatus === 'Landed' || prevStatus === 'Landed near') {
+  fs.writeFileSync('../data/STATUS.txt', prevStatus);
+}
+
 
       // Update the variables for the next iteration
       wasOnGround = isOnGround;
