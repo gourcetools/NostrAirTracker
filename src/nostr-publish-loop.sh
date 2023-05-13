@@ -66,6 +66,30 @@ do
       echo "==================================================="
       nostril --envelope --pow "$POW" --sec "$PRIVKEY" --content "$MESSAGE" | tee >(websocat $RELAY) >(websocat $RELAY_B) >(websocat $RELAY_C)  
 
+    #Landed Near, then:
+  elif [ "$STATUS" == "Landed near" ]; then
+
+
+    
+     echo "Checking position with ./crawl-position.js "
+     node crawl-position.js
+     echo "Converting position to airport name with crawled-position-to-airport.py"
+     python3 crawled-position-to-airport.py
+
+      cp ../data/AIRPORT.txt ../data/LAST-AIRPORT.txt
+      AIRPORT=$(cat ../data/AIRPORT.txt)
+      # Take a screenshots and combine them, them upload the image and add it to the message.
+      echo " 🏁 Landed near "$AIRPORT"." > ../data/MESSAGE.txt
+      node screenshot-taker.js
+      python3 screenshot-combiner.py
+      ./screenshot-uploader.sh
+      echo "==================================================="
+      MESSAGE=$(cat ../data/MESSAGE.txt)
+      echo "$MESSAGE"
+      echo "==================================================="
+      nostril --envelope --pow "$POW" --sec "$PRIVKEY" --content "$MESSAGE" | tee >(websocat $RELAY) >(websocat $RELAY_B) >(websocat $RELAY_C)  
+
+
     # PARKED, then:
     elif [ "$STATUS" == "Parked" ]; then
       AIRPORT=$(cat ../data/AIRPORT.txt)
