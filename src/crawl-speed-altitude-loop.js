@@ -193,9 +193,9 @@ console.log(`${lastSeenMinutes} - ${LAST_SEEN} `);
 
 // If the previous status was 'Flying', the current altitude is less than or equal to 15000 or N/A,
 // and the last seen time is more than 5 minutes ago, the aircraft has landed near
-if (prevStatus === 'Flying' && (isNaN(ALTITUDE) || ALTITUDE <= 15000) && lastSeenMinutes > 5) {
+if (prevStatus === 'Flying' && (isNaN(ALTITUDE) || ALTITUDE <= 15000) && lastSeenMinutes > 20) {
   updateStatus('Landed near');
-  console.log('Last seen < 5 min, plane is under 15000 - Landed near');
+  console.log('Last seen < 20 min, plane is under 15000 - Landed near');
 
 // If the previous status was 'Flying' and the current altitude is 500 or below and speed is 150 or below, the aircraft has landed
 } else if (prevStatus === 'Flying' && ALTITUDE <= 500 && SPEED <= 150) {
@@ -213,7 +213,7 @@ if (prevStatus === 'Flying' && (isNaN(ALTITUDE) || ALTITUDE <= 15000) && lastSee
   console.log('Already took off, now flying.');
 
 // If the previous status was 'Landed' and the current altitude is 500 or below and speed is 10 or below, the aircraft is parked
-} else if (prevStatus === 'Landed' && ALTITUDE <= 500 && SPEED <= 10) {
+} else if ((prevStatus === 'Landed' || prevStatus === 'Landed near') && ALTITUDE <= 500 && SPEED <= 10) {
   updateStatus('Parked');
   console.log('Now Parked');
 } else {
@@ -229,7 +229,7 @@ if (prevStatus === 'Flying' && (isNaN(ALTITUDE) || ALTITUDE <= 15000) && lastSee
 }
 
 
-// Save "Took Off" or "Landed" events to the STATUS.txt file
+// Save "Took Off" or "Landed" or "Landed near" events to the STATUS.txt file
 if (prevStatus === 'Took Off' || prevStatus === 'Landed' || prevStatus === 'Landed near') {
   fs.writeFileSync('../data/STATUS.txt', prevStatus);
 }
