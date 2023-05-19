@@ -1,4 +1,5 @@
 #!/bin/bash
+    echo "==== screenshot-uploader.sh ===="
 
 # This script uploads an image to a file hosting service and provides a URL to the uploaded image.
 

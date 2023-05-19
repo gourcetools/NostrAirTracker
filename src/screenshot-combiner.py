@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageOps
+print("==== screenshot-combiner.py ====")
 
 def round_corners(image, radius):
     circle = Image.new('L', (radius * 2, radius * 2), 0)
